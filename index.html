@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gestión de mi Catequesis</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1e40af">
+    <link rel="manifest" href="manifest.json">
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
@@ -185,10 +192,8 @@
                 </div>
             </div>
             <div class="comm-grid"><button id="f-wa" class="btn-comm" style="background:#25d366">📱 WhatsApp</button><button id="f-call" class="btn-comm" style="background:var(--azul-primario)">📞 Llamar</button></div>
-            
             <div class="section-label" style="padding: 20px 0 10px; color:var(--azul-primario)">Desglose de Pagos</div>
             <div id="f-desglose-pagos" style="margin-bottom:15px"></div>
-            
             <label>Notas</label><textarea id="f-notas" onchange="updateAlumno()"></textarea>
             <div id="historial-alumno" style="margin-top:10px; font-size:0.85rem; padding:10px; background:var(--bg-body); border-radius:10px"></div>
             <button class="btn-main" style="background:none; color:var(--rojo-alerta); border:1px solid var(--rojo-alerta)" onclick="eliminarAlumno()">Eliminar Alumno</button>
@@ -246,6 +251,7 @@
             localStorage.setItem(KEY_HO, JSON.stringify(horario));
             localStorage.setItem(KEY_CO, JSON.stringify(conceptos));
 
+            // Home
             const homeClase = document.getElementById('home-clase-hoy');
             let claseHoy = horario.find(h => h.fecha === HOY_ISO);
             homeClase.innerHTML = claseHoy ? `<div class="card" style="background:var(--azul-oscuro); color:white; text-align:center; padding:15px; margin-bottom:10px">Tema de hoy: <strong>${claseHoy.titulo}</strong></div>` : '';
@@ -257,6 +263,7 @@
                 return `<div class="card item-row"><div style="flex:1" onclick="verFicha(${a.id})"><h4>${a.nombre}</h4>${deudas.length > 0 ? `<span class="badge-pend">Debe: ${deudas.join(', ')}</span>` : '<span style="color:var(--verde-exito); font-size:0.75rem">● Pagado</span>'}</div><div style="display:flex; gap:8px"><button class="status-btn btn-presente ${tieneAsis?'active':''}" onclick="marcarAsistencia(${a.id})">SÍ</button><button class="status-btn btn-ausente ${tieneFalta?'active':''}" onclick="abrirModalFalta(${a.id})">NO</button></div></div>`;
             }).join('');
 
+            // Lista Alumnos con detalles
             const listF = document.getElementById('lista-fichas');
             listF.innerHTML = alumnos.map(a => {
                 const deudas = conceptos.filter(c => !a.pagos[c.nombre]).map(c => c.nombre);
@@ -264,19 +271,23 @@
                 return `<div class="card item-row" onclick="verFicha(${a.id})"><div><h4>${a.nombre}</h4><p>${textoPago}</p></div><span>✏️</span></div>`;
             }).join('');
 
+            // Historial select
             const selectH = document.getElementById('select-historial');
             const fechasPasadas = horario.filter(h => h.fecha < HOY_ISO).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
             selectH.innerHTML = '<option value="">-- Ver historial --</option>' + fechasPasadas.map(h => `<option value="${h.fecha}">${h.fecha} - ${h.titulo}</option>`).join('');
 
+            // Horario
             const listH = document.getElementById('lista-horario');
             listH.innerHTML = horario.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)).map(h => `<div class="card item-row"><div><strong>${h.fecha}</strong><br>${h.titulo}</div><button onclick="deleteEvent(${h.id})" style="border:none; background:none; color:red; font-size:1.2rem">✕</button></div>`).join('');
 
+            // Pagos General
             const listP = document.getElementById('lista-pagos');
             listP.innerHTML = alumnos.map(a => {
                 let pgs = conceptos.map(c => `<div class="pago-pill ${a.pagos[c.nombre]?'active':''}" onclick="togglePago(${a.id}, '${c.nombre}')">${c.nombre}<br>${c.precio}€</div>`).join('');
                 return `<div class="card"><h4>${a.nombre}</h4><div style="margin-top:10px">${pgs}</div></div>`;
             }).join('');
 
+            // Ajustes Conceptos
             const listC = document.getElementById('lista-conceptos');
             listC.innerHTML = conceptos.map((c, idx) => `<div class="card item-row" style="margin-bottom:8px"><span>${c.nombre} (${c.precio}€)</span><button onclick="deleteConcepto(${idx})" style="color:red; border:none; background:none">Borrar</button></div>`).join('');
 
@@ -296,7 +307,7 @@
             document.getElementById('f-call').onclick = () => contactar(a, 'tel');
             document.getElementById('historial-alumno').innerHTML = `<strong>Resumen:</strong> ${a.asistencias.length} clases | ${a.faltas.length} faltas`;
             
-            // LÓGICA DE DESGLOSE RESTAURADA
+            // Desglose de pagos en ficha
             const desglose = document.getElementById('f-desglose-pagos');
             desglose.innerHTML = conceptos.map(c => {
                 const pagado = a.pagos[c.nombre];
@@ -307,24 +318,6 @@
             }).join('');
 
             changeTab(null, 'ficha-detalle');
-        }
-
-        // --- Resto de funciones (Copia, Navegación, Asistencia, etc.) ---
-        function exportarDatos() {
-            const data = { alumnos, horario, conceptos };
-            const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url; a.download = `Copia_Cate.json`; a.click();
-        }
-
-        function importarDatos(event) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const d = JSON.parse(e.target.result);
-                if (confirm("¿Restaurar copia?")) { alumnos=d.alumnos; horario=d.horario; conceptos=d.conceptos||conceptos; renderApp(); }
-            };
-            reader.readAsText(event.target.files[0]);
         }
 
         function changeTab(el, id) {
@@ -348,33 +341,17 @@
             a.nombre = document.getElementById('f-nombre').value; a.tutor = document.getElementById('f-tutor').value; a.tel = document.getElementById('f-tel').value; 
             a.tutor2 = document.getElementById('f-tutor2').value; a.tel2 = document.getElementById('f-tel2').value; a.notas = document.getElementById('f-notas').value; renderApp(); 
         }
-        function mostrarSegundoResponsable() { document.getElementById('f-resp2-fields').style.display = 'block'; document.getElementById('btn-container-resp2').style.display = 'none'; }
         function marcarAsistencia(id) { const a = alumnos.find(x => x.id === id); if(!a.asistencias.includes(HOY_ISO)) a.asistencias.push(HOY_ISO); a.faltas = a.faltas.filter(f => f.fecha !== HOY_ISO); renderApp(); }
         function abrirModalFalta(id) { alumnoActualId = id; const m = ['🏥 Enfermedad', '🦷 Médico', '✈️ Viaje', '❓ Otros']; document.getElementById('botones-motivo').innerHTML = m.map(x => `<button class="btn-main" onclick="confirmarFalta('${x}')">${x}</button>`).join(''); document.getElementById('modalFalta').style.display = 'flex'; }
         function confirmarFalta(motivo) { const a = alumnos.find(x => x.id === alumnoActualId); a.faltas = a.faltas.filter(f => f.fecha !== HOY_ISO); a.faltas.push({fecha: HOY_ISO, motivo: motivo}); a.asistencias = a.asistencias.filter(f => f !== HOY_ISO); cerrarModal(); renderApp(); }
         function cerrarModal() { document.getElementById('modalFalta').style.display = 'none'; }
-        function prepararNuevoAlumno() { document.getElementById('newN').value = ""; document.getElementById('newT').value = ""; document.getElementById('newTel').value = ""; changeTab(null, 'nuevo-alumno'); }
         function saveAlumno() { const n = document.getElementById('newN').value; if(n) { alumnos.push({id:Date.now(), nombre:n, tutor:document.getElementById('newT').value, tel:document.getElementById('newTel').value, asistencias:[], faltas:[], pagos:{}, notas:""}); renderApp(); goBack(); } }
-        function prepararNuevaClase() { document.getElementById('newHFecha').value = ""; document.getElementById('newHTitulo').value = ""; changeTab(null, 'nuevo-horario'); }
         function saveHorario() { const f = document.getElementById('newHFecha').value, t = document.getElementById('newHTitulo').value; if(f && t) { horario.push({id:Date.now(), fecha:f, titulo:t}); renderApp(); goBack(); } }
-        function deleteEvent(id) { if(confirm("¿Borrar?")) { horario = horario.filter(h => h.id !== id); renderApp(); } }
-        function eliminarAlumno() { if(confirm("¿Eliminar?")) { alumnos = alumnos.filter(x => x.id !== alumnoActualId); renderApp(); goBack(); } }
         function togglePago(id, conc) { const a = alumnos.find(x => x.id === id); a.pagos[conc] = !a.pagos[conc]; renderApp(); }
         function addConcepto() { let n = prompt("Nombre:"), p = prompt("Precio:"); if(n && p) { conceptos.push({nombre:n, precio:p}); renderApp(); } }
         function deleteConcepto(idx) { if(confirm("¿Borrar?")) { conceptos.splice(idx, 1); renderApp(); } }
         function filtrarAlumnos(v) { filtroActual = v; renderApp(); }
-        function mostrarHistorialFecha(f) {
-            const div = document.getElementById('detalle-historial-home'), list = document.getElementById('hist-lista-resumen'), tit = document.getElementById('hist-titulo-clase');
-            if (!f) { div.style.display='none'; return; }
-            const s = horario.find(h => h.fecha === f); tit.innerText = `Clase: ${s.titulo}`;
-            list.innerHTML = alumnos.map(a => {
-                const as = a.asistencias.includes(f), fa = a.faltas.find(x => x.fecha === f);
-                let est = as ? '<span class="tag-asis">Presente</span>' : (fa ? `<span class="tag-falta">Faltó (${fa.motivo})</span>` : '<span style="color:grey">Sin registro</span>');
-                return `<div class="history-row"><span>${a.nombre}</span>${est}</div>`;
-            }).join('');
-            div.style.display='block';
-        }
-
+        
         function generarPDF(tipo) {
             const { jsPDF } = window.jspdf; const doc = new jsPDF(); let head = [], body = [], tit = "";
             if(tipo==='asistencia') { tit="ASISTENCIA"; head=[["Alumno", "Faltas"]]; body=alumnos.map(a=>[a.nombre, a.faltas.length]); }
