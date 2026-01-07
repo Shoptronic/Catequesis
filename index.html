@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mi Catequesis Pro</title>
+    <title>Mi Catequesis</title>
     
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,9 +12,6 @@
     <link rel="manifest" href="manifest.json">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    
     <style>
         :root {
             --azul-primario: #3b82f6;
@@ -38,10 +35,10 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-body); color: var(--gris-texto); padding-bottom: 100px; font-size: 16px; transition: 0.3s; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-body); color: var(--gris-texto); padding-bottom: 100px; font-size: 16px; transition: 0.3s; overflow-x: hidden; }
 
         header { background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-primario)); color: white; padding: 30px 20px 40px; border-radius: 0 0 30px 30px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
-        .back-btn { position: absolute; left: 20px; top: 30px; background: rgba(255,255,255,0.2); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; display: none; font-size: 1.4rem; z-index: 101; }
+        .back-btn { position: absolute; left: 20px; top: 30px; background: rgba(255,255,255,0.2); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; display: none; font-size: 1.4rem; cursor: pointer; z-index: 101; }
 
         .view { display: none; padding: 20px 0; animation: fadeIn 0.2s ease-out; }
         .view.active { display: block; }
@@ -51,7 +48,9 @@
         .section-label { padding: 0 20px 12px; font-weight: 600; color: var(--gris-suave); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
 
         .item-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .search-input { width: calc(100% - 32px); margin: 0 16px 15px; padding: 14px 20px; border-radius: 15px; border: 1px solid #e2e8f0; background: var(--bg-card); color: var(--gris-texto); outline: none; }
+        
+        .search-container { padding: 0 16px 15px; }
+        .search-input { width: 100%; padding: 14px 20px; border-radius: 15px; border: 1px solid #e2e8f0; background: var(--bg-card); color: var(--gris-texto); font-size: 0.95rem; outline: none; }
 
         .status-btn { padding: 12px 18px; border-radius: 14px; border: none; font-weight: 600; cursor: pointer; }
         .btn-presente { background: #dcfce7; color: #166534; }
@@ -70,13 +69,14 @@
         input, textarea, select { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 15px; margin-top: 5px; font-size: 1rem; background: var(--bg-body); color: var(--gris-texto); font-family: inherit; }
         .btn-main { background: var(--azul-primario); color: white; border: none; padding: 18px; width: 100%; border-radius: 18px; font-weight: 600; font-size: 1.1rem; margin-top: 15px; cursor: pointer; }
         
+        .comm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn-comm { border: none; padding: 15px; border-radius: 15px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background: var(--bg-card); width: 100%; max-width: 400px; border-radius: 25px; padding: 30px; text-align: center; }
         
         .pago-pill { display: inline-flex; flex-direction: column; align-items: center; padding: 10px; border-radius: 14px; font-size: 0.8rem; font-weight: 600; margin: 4px; cursor: pointer; background: var(--azul-claro); color: var(--azul-primario); min-width: 85px; }
         .pago-pill.active { background: var(--verde-exito); color: white; }
-        
-        .report-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -96,7 +96,9 @@
             <div class="card" style="margin:0; text-align:center"><h3 id="count-faltas" style="color:var(--rojo-alerta)">0</h3><p style="font-size:0.7rem">FALTAS HOY</p></div>
         </div>
         <div class="section-label">Asistencia de Hoy</div>
-        <input type="text" class="search-input" placeholder="🔍 Buscar alumno..." onkeyup="filtrarAlumnos(this.value)">
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="🔍 Buscar alumno..." onkeyup="filtrarAlumnos(this.value)">
+        </div>
         <div id="lista-asistencia"></div>
     </div>
 
@@ -106,46 +108,53 @@
     </div>
 
     <div id="alumnos" class="view">
-        <div class="section-label">Directorio de Alumnos</div>
+        <div class="section-label">Directorio</div>
         <div id="lista-fichas"></div>
     </div>
 
     <div id="pagos" class="view">
-        <div class="section-label">Control de Pagos</div>
+        <div class="section-label">Estado de Cobros</div>
         <div id="lista-pagos"></div>
     </div>
 
     <div id="ajustes" class="view">
-        <div class="section-label">Informes de Asistencia</div>
-        <div class="card">
-            <div id="resumen-asistencia"></div>
-            <button class="btn-main" onclick="generarPDF()" style="background:var(--azul-oscuro); margin-top:20px">📄 Generar Informe PDF</button>
+        <div class="section-label">Preferencias</div>
+        <div class="card item-row">
+            <span>Modo Oscuro</span>
+            <button onclick="document.body.classList.toggle('dark-mode')" style="padding:5px 15px; border-radius:10px; border:1px solid #ddd">Cambiar</button>
         </div>
-
-        <div class="section-label">Conceptos de Pago <button onclick="addConcepto()" style="float:right; background:var(--azul-primario); color:white; border:none; width:25px; height:25px; border-radius:50%">+</button></div>
+        
+        <div class="section-label">Conceptos de Pago <button onclick="addConcepto()" style="float:right; background:var(--azul-primario); color:white; border:none; width:25px; height:25px; border-radius:50%; font-weight:bold">+</button></div>
         <div id="lista-conceptos-ajustes"></div>
 
-        <div class="section-label">Opciones</div>
+        <div class="section-label">Seguridad</div>
         <div class="card">
-            <button class="btn-main" onclick="document.body.classList.toggle('dark-mode')" style="background:var(--gris-suave)">🌓 Cambiar Modo Visual</button>
-            <button class="btn-main" onclick="exportarDatos()" style="background:var(--verde-exito)">💾 Exportar Datos</button>
+            <button class="btn-main" onclick="exportarDatos()" style="background: var(--verde-exito);">💾 Guardar Copia Seguridad</button>
+            <button class="btn-main" onclick="document.getElementById('importInput').click()" style="background: var(--azul-oscuro); margin-top:10px;">📥 Restaurar Copia</button>
+            <input type="file" id="importInput" style="display:none" accept=".json" onchange="importarDatos(event)">
         </div>
     </div>
 
     <div id="ficha-detalle" class="view">
         <div class="card">
             <label>Nombre Alumno</label><input type="text" id="f-nombre" onchange="updateAlumno()">
+            
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <div><label>Parentesco 1</label><select id="f-parentesco" onchange="updateAlumno()"><option value="Padre">Padre</option><option value="Madre">Madre</option><option value="Tutor">Tutor</option></select></div>
                 <div><label>Nombre Resp. 1</label><input type="text" id="f-tutor" onchange="updateAlumno()"></div>
             </div>
             <label>Teléfono 1</label><input type="tel" id="f-tel" onchange="updateAlumno()">
-            <hr style="margin:15px 0">
+
+            <div style="margin:20px 0; border-top:1px dashed #ddd"></div>
+
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <div><label>Parentesco 2</label><select id="f-parentesco2" onchange="updateAlumno()"><option value="">Ninguno</option><option value="Padre">Padre</option><option value="Madre">Madre</option><option value="Tutor">Tutor</option></select></div>
                 <div><label>Nombre Resp. 2</label><input type="text" id="f-tutor2" onchange="updateAlumno()"></div>
             </div>
             <label>Teléfono 2</label><input type="tel" id="f-tel2" onchange="updateAlumno()">
+
+            <div class="comm-grid"><button id="f-wa" class="btn-comm" style="background:#25d366">📱 WhatsApp</button><button id="f-call" class="btn-comm" style="background:var(--azul-primario)">📞 Llamar</button></div>
+            
             <label>Notas</label><textarea id="f-notas" onchange="updateAlumno()"></textarea>
             <button class="btn-main" style="background:none; color:var(--rojo-alerta); border:1px solid var(--rojo-alerta)" onclick="eliminarAlumno()">Eliminar Alumno</button>
         </div>
@@ -169,7 +178,7 @@
         document.getElementById('fecha-header').innerText = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
         
         let filtroActual = "", alumnoActualId = null, vistaAnterior = 'inicio';
-        const KEY_AL = 'cate_v4_alumnos', KEY_HO = 'cate_v4_horario', KEY_CO = 'cate_v4_conceptos';
+        const KEY_AL = 'cate_v5_alumnos', KEY_HO = 'cate_v5_horario', KEY_CO = 'cate_v5_conceptos';
 
         let alumnos = JSON.parse(localStorage.getItem(KEY_AL)) || [];
         let horario = JSON.parse(localStorage.getItem(KEY_HO)) || [];
@@ -180,7 +189,7 @@
             localStorage.setItem(KEY_HO, JSON.stringify(horario));
             localStorage.setItem(KEY_CO, JSON.stringify(conceptos));
 
-            // Asistencia Inicio
+            // Asistencia
             document.getElementById('lista-asistencia').innerHTML = alumnos.filter(a => a.nombre.toLowerCase().includes(filtroActual.toLowerCase())).map(a => {
                 const tieneFalta = a.faltas?.some(f => f.fecha === HOY_ISO), tieneAsis = a.asistencias?.includes(HOY_ISO);
                 return `<div class="card item-row"><div style="flex:1" onclick="verFicha(${a.id})"><h4>${a.nombre}</h4></div><div style="display:flex; gap:8px"><button class="status-btn btn-presente ${tieneAsis?'active':''}" onclick="marcarAsistencia(${a.id})">SÍ</button><button class="status-btn btn-ausente ${tieneFalta?'active':''}" onclick="abrirModalFalta(${a.id})">NO</button></div></div>`;
@@ -189,24 +198,17 @@
             // Lista Alumnos
             document.getElementById('lista-fichas').innerHTML = alumnos.map(a => `<div class="card item-row" onclick="verFicha(${a.id})"><div><h4>${a.nombre}</h4><p style="font-size:0.8rem; color:grey">${a.tutor || ''}</p></div><span>✏️</span></div>`).join('');
 
+            // Horario
+            document.getElementById('lista-horario').innerHTML = horario.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)).map(h => `<div class="card item-row"><div><strong>${new Date(h.fecha).toLocaleDateString()}</strong><br>${h.titulo}</div><button onclick="deleteEvent(${h.id})" style="border:none; background:none; color:red">✕</button></div>`).join('');
+
             // Pagos
             document.getElementById('lista-pagos').innerHTML = alumnos.map(a => {
                 let pgs = conceptos.map(c => `<div class="pago-pill ${(a.pagos && a.pagos[c.nombre])?'active':''}" onclick="togglePago(${a.id}, '${c.nombre}')">${c.nombre}</div>`).join('');
                 return `<div class="card"><h4>${a.nombre}</h4><div style="margin-top:10px">${pgs}</div></div>`;
             }).join('');
 
-            // Horario
-            document.getElementById('lista-horario').innerHTML = horario.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)).map(h => `<div class="card item-row"><div><strong>${new Date(h.fecha).toLocaleDateString()}</strong><br>${h.titulo}</div><button onclick="deleteEvent(${h.id})" style="border:none; background:none; color:red">✕</button></div>`).join('');
-
-            // Conceptos Ajustes
-            document.getElementById('lista-conceptos-ajustes').innerHTML = conceptos.map((c, i) => `<div class="card item-row" style="margin-bottom:8px"><span>${c.nombre} (${c.precio}€)</span><button onclick="deleteConcepto(${i})" style="color:red; border:none; background:none">Borrar</button></div>`).join('');
-
-            // INFORME EN AJUSTES
-            document.getElementById('resumen-asistencia').innerHTML = alumnos.map(a => {
-                const nFaltas = a.faltas?.length || 0;
-                const nAsis = a.asistencias?.length || 0;
-                return `<div class="report-item"><span>${a.nombre}</span> <span><b>${nAsis}</b> asis. / <b>${nFaltas}</b> faltas</span></div>`;
-            }).join('') || '<p>No hay alumnos registrados.</p>';
+            // Conceptos en Ajustes
+            document.getElementById('lista-conceptos-ajustes').innerHTML = conceptos.map((c, i) => `<div class="card item-row" style="padding:10px 20px; margin-bottom:10px"><span>${c.nombre} (${c.precio}€)</span><button onclick="deleteConcepto(${i})" style="color:red; border:none; background:none">Borrar</button></div>`).join('');
 
             document.getElementById('count-alumnos').innerText = alumnos.length;
             document.getElementById('count-faltas').innerText = alumnos.filter(a => a.faltas?.some(f => f.fecha === HOY_ISO)).length;
@@ -221,16 +223,6 @@
             document.getElementById('fab-alumno').style.display = (id === 'alumnos') ? 'flex' : 'none';
             document.getElementById('fab-evento').style.display = (id === 'calendario') ? 'flex' : 'none';
             document.getElementById('btnBack').style.display = (['ficha-detalle', 'nuevo-alumno', 'nuevo-horario'].includes(id)) ? 'block' : 'none';
-            if(id === 'ajustes') renderApp();
-        }
-
-        function generarPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text("Informe de Asistencia - Catequesis", 20, 20);
-            const data = alumnos.map(a => [a.nombre, a.asistencias?.length || 0, a.faltas?.length || 0]);
-            doc.autoTable({ head: [['Alumno', 'Asistencias', 'Faltas']], body: data, startY: 30 });
-            doc.save("Informe_Catequesis.pdf");
         }
 
         function verFicha(id) {
@@ -241,6 +233,8 @@
             document.getElementById('f-tutor2').value = a.tutor2 || ""; document.getElementById('f-tel2').value = a.tel2 || "";
             document.getElementById('f-parentesco2').value = a.parentesco2 || "";
             document.getElementById('f-notas').value = a.notas || "";
+            document.getElementById('f-wa').onclick = () => { let t = a.tel || a.tel2; window.open(`https://wa.me/${t}`); };
+            document.getElementById('f-call').onclick = () => { let t = a.tel || a.tel2; window.open(`tel:${t}`); };
             changeTab(null, 'ficha-detalle');
         }
 
@@ -251,13 +245,14 @@
             a.parentesco2 = document.getElementById('f-parentesco2').value; a.notas = document.getElementById('f-notas').value; renderApp(); 
         }
 
-        function addConcepto() { let n = prompt("Concepto:"), p = prompt("Precio:"); if(n && p){ conceptos.push({nombre:n, precio:p}); renderApp(); } }
+        function addConcepto() { let n = prompt("Concepto:"); let p = prompt("Precio:"); if(n && p){ conceptos.push({nombre:n, precio:p}); renderApp(); } }
         function deleteConcepto(i) { if(confirm("¿Borrar?")){ conceptos.splice(i, 1); renderApp(); } }
         function marcarAsistencia(id) { const a = alumnos.find(x => x.id === id); if(!a.asistencias) a.asistencias = []; if(!a.asistencias.includes(HOY_ISO)) a.asistencias.push(HOY_ISO); a.faltas = a.faltas?.filter(f => f.fecha !== HOY_ISO); renderApp(); }
         function abrirModalFalta(id) { alumnoActualId = id; const m = ['Enfermedad', 'Médico', 'Viaje', 'Otros']; document.getElementById('botones-motivo').innerHTML = m.map(x => `<button class="btn-main" onclick="confirmarFalta('${x}')">${x}</button>`).join(''); document.getElementById('modalFalta').style.display = 'flex'; }
         function confirmarFalta(motivo) { const a = alumnos.find(x => x.id === alumnoActualId); if(!a.faltas) a.faltas = []; a.faltas.push({fecha:HOY_ISO, motivo:motivo}); a.asistencias = a.asistencias?.filter(f => f !== HOY_ISO); cerrarModal(); renderApp(); }
         function togglePago(id, c) { const a = alumnos.find(x => x.id === id); if(!a.pagos) a.pagos = {}; a.pagos[c] = !a.pagos[c]; renderApp(); }
         function exportarDatos() { const blob = new Blob([JSON.stringify({alumnos, horario, conceptos})], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `Copia_Catequesis.json`; a.click(); }
+        function importarDatos(e) { const reader = new FileReader(); reader.onload = (ev) => { const d = JSON.parse(ev.target.result); alumnos=d.alumnos; horario=d.horario; conceptos=d.conceptos; renderApp(); }; reader.readAsText(e.target.files[0]); }
         function saveAlumno() { const n = document.getElementById('newN').value; if(n){ alumnos.push({id:Date.now(), nombre:n, tutor:document.getElementById('newT').value, tel:document.getElementById('newTel').value, asistencias:[], faltas:[], pagos:{}, notas:""}); renderApp(); goBack(); } }
         function saveHorario() { const f = document.getElementById('newHFecha').value, t = document.getElementById('newHTitulo').value; if(f && t){ horario.push({id:Date.now(), fecha:f, titulo:t}); renderApp(); goBack(); } }
         function deleteEvent(id) { if(confirm("¿Borrar?")){ horario = horario.filter(h => h.id !== id); renderApp(); } }
