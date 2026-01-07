@@ -12,8 +12,6 @@
     <link rel="manifest" href="manifest.json">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root {
             --azul-primario: #3b82f6;
@@ -51,14 +49,7 @@
 
         .item-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         
-        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--azul-primario); }
-        input:checked + .slider:before { transform: translateX(24px); }
-
-        .search-container { padding: 0 16px 15px; margin-top: 5px; position: relative; z-index: 10; }
+        .search-container { padding: 0 16px 15px; }
         .search-input { width: 100%; padding: 14px 20px; border-radius: 15px; border: 1px solid #e2e8f0; background: var(--bg-card); color: var(--gris-texto); font-size: 0.95rem; outline: none; }
 
         .status-btn { padding: 12px 18px; border-radius: 14px; border: none; font-weight: 600; cursor: pointer; }
@@ -67,17 +58,15 @@
         .btn-ausente { background: #fee2e2; color: #991b1b; }
         .btn-ausente.active { background: var(--rojo-alerta); color: white; }
 
-        .pago-pill { display: inline-flex; flex-direction: column; align-items: center; padding: 10px; border-radius: 14px; font-size: 0.8rem; font-weight: 600; margin: 4px; cursor: pointer; background: var(--azul-claro); color: var(--azul-primario); min-width: 85px; }
-        .pago-pill.active { background: var(--verde-exito); color: white; }
+        .fab { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; background: var(--azul-primario); color: white; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 2.2rem; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 2000; }
 
         .tab-bar { position: fixed; bottom: 0; width: 100%; background: var(--bg-card); display: flex; padding: 10px 0 25px; border-top: 1px solid #e2e8f0; z-index: 1000; }
         .tab-item { flex: 1; text-align: center; color: var(--gris-suave); font-size: 0.75rem; cursor: pointer; }
         .tab-item.active { color: var(--azul-primario); font-weight: 600; }
         .tab-icon { font-size: 1.7rem; display: block; }
 
-        /* BOTONES FLOTANTES CORREGIDOS */
-        .fab { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; background: var(--azul-primario); color: white; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 2rem; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 2000; cursor: pointer; }
-
+        label { display: block; margin-top: 12px; font-weight: 600; font-size: 0.85rem; color: var(--gris-suave); }
+        input, textarea, select { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 15px; margin-top: 5px; font-size: 1rem; background: var(--bg-body); color: var(--gris-texto); font-family: inherit; }
         .btn-main { background: var(--azul-primario); color: white; border: none; padding: 18px; width: 100%; border-radius: 18px; font-weight: 600; font-size: 1.1rem; margin-top: 15px; cursor: pointer; }
         
         .comm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
@@ -85,6 +74,10 @@
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background: var(--bg-card); width: 100%; max-width: 400px; border-radius: 25px; padding: 30px; text-align: center; }
+        
+        .badge-pend { font-size: 0.75rem; color: var(--rojo-alerta); background: #fee2e2; padding: 4px 10px; border-radius: 8px; font-weight: 600; margin-top: 4px; display: inline-block; }
+        .pago-pill { display: inline-flex; flex-direction: column; align-items: center; padding: 10px; border-radius: 14px; font-size: 0.8rem; font-weight: 600; margin: 4px; cursor: pointer; background: var(--azul-claro); color: var(--azul-primario); min-width: 85px; }
+        .pago-pill.active { background: var(--verde-exito); color: white; }
     </style>
 </head>
 <body>
@@ -95,15 +88,14 @@
         <p id="fecha-header">Cargando...</p>
     </header>
 
-    <button id="fab-alumno" class="fab" onclick="prepararNuevoAlumno()">+</button>
-    <button id="fab-evento" class="fab" onclick="prepararNuevaClase()">+</button>
+    <button id="fab-alumno" class="fab" onclick="changeTab(null, 'nuevo-alumno')">+</button>
+    <button id="fab-evento" class="fab" onclick="changeTab(null, 'nuevo-horario')">+</button>
 
     <div id="inicio" class="view active">
         <div class="stats-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; padding:20px 16px 10px;">
             <div class="card" style="margin:0; text-align:center"><h3 id="count-alumnos">0</h3><p style="font-size:0.7rem">ALUMNOS</p></div>
             <div class="card" style="margin:0; text-align:center"><h3 id="count-faltas" style="color:var(--rojo-alerta)">0</h3><p style="font-size:0.7rem">FALTAS HOY</p></div>
         </div>
-        <div id="home-clase-hoy" style="padding: 0 16px;"></div>
         <div class="section-label">Asistencia de Hoy</div>
         <div class="search-container">
             <input type="text" class="search-input" placeholder="🔍 Buscar alumno..." onkeyup="filtrarAlumnos(this.value)">
@@ -122,34 +114,46 @@
     </div>
 
     <div id="pagos" class="view">
-        <div class="section-label">Cobros</div>
+        <div class="section-label">Estado de Cobros</div>
         <div id="lista-pagos"></div>
     </div>
 
     <div id="ajustes" class="view">
-        <div class="section-label">Preferencias</div>
+        <div class="section-label">Personalización</div>
         <div class="card item-row">
             <span>Modo Oscuro</span>
-            <label class="switch"><input type="checkbox" id="darkModeToggle" onclick="document.body.classList.toggle('dark-mode')"><span class="slider"></span></label>
+            <button onclick="document.body.classList.toggle('dark-mode')" style="padding:5px 15px; border-radius:10px; border:1px solid #ddd">Cambiar</button>
         </div>
-        <div class="section-label">Conceptos <button onclick="addConcepto()" style="float:right; background:var(--azul-primario); color:white; border:none; width:25px; height:25px; border-radius:50%">+</button></div>
-        <div id="lista-conceptos"></div>
+        
+        <div class="section-label">Conceptos de Pago <button onclick="addConcepto()" style="float:right; background:var(--azul-primario); color:white; border:none; width:25px; height:25px; border-radius:50%; font-weight:bold">+</button></div>
+        <div id="lista-conceptos-ajustes"></div>
+
         <div class="section-label">Seguridad</div>
         <div class="card">
-            <button class="btn-main" onclick="exportarDatos()" style="background: var(--verde-exito);">💾 Guardar Copia</button>
-            <button class="btn-main" onclick="document.getElementById('importInput').click()" style="background: var(--azul-oscuro);">📥 Restaurar Copia</button>
-            <input type="file" id="importInput" style="display:none" accept=".json" onchange="importarDatos(event)">
+            <button class="btn-main" onclick="exportarDatos()">💾 Copia de Seguridad</button>
         </div>
     </div>
 
     <div id="ficha-detalle" class="view">
         <div class="card">
-            <label>Nombre</label><input type="text" id="f-nombre" onchange="updateAlumno()">
-            <label>Tutor</label><input type="text" id="f-tutor" onchange="updateAlumno()">
-            <label>Teléfono</label><input type="tel" id="f-tel" onchange="updateAlumno()">
+            <label>Nombre Alumno</label><input type="text" id="f-nombre" onchange="updateAlumno()">
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div><label>Parentesco 1</label><select id="f-parentesco" onchange="updateAlumno()"><option value="Padre">Padre</option><option value="Madre">Madre</option><option value="Tutor">Tutor</option></select></div>
+                <div><label>Nombre Resp. 1</label><input type="text" id="f-tutor" onchange="updateAlumno()"></div>
+            </div>
+            <label>Teléfono 1</label><input type="tel" id="f-tel" onchange="updateAlumno()">
+
+            <div style="margin:20px 0; border-top:1px dashed #ddd"></div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div><label>Parentesco 2</label><select id="f-parentesco2" onchange="updateAlumno()"><option value="">Ninguno</option><option value="Padre">Padre</option><option value="Madre">Madre</option><option value="Tutor">Tutor</option></select></div>
+                <div><label>Nombre Resp. 2</label><input type="text" id="f-tutor2" onchange="updateAlumno()"></div>
+            </div>
+            <label>Teléfono 2</label><input type="tel" id="f-tel2" onchange="updateAlumno()">
+
             <div class="comm-grid"><button id="f-wa" class="btn-comm" style="background:#25d366">📱 WhatsApp</button><button id="f-call" class="btn-comm" style="background:var(--azul-primario)">📞 Llamar</button></div>
-            <div class="section-label" style="padding:20px 0 10px">Desglose de Pagos</div>
-            <div id="f-desglose-pagos"></div>
+            
             <label>Notas</label><textarea id="f-notas" onchange="updateAlumno()"></textarea>
             <button class="btn-main" style="background:none; color:var(--rojo-alerta); border:1px solid var(--rojo-alerta)" onclick="eliminarAlumno()">Eliminar Alumno</button>
         </div>
@@ -161,7 +165,7 @@
             <label>Nombre</label><input type="text" id="newN">
             <label>Tutor</label><input type="text" id="newT">
             <label>Teléfono</label><input type="tel" id="newTel">
-            <button class="btn-main" onclick="saveAlumno()">Guardar</button>
+            <button class="btn-main" onclick="saveAlumno()">Guardar Alumno</button>
         </div>
     </div>
 
@@ -170,7 +174,7 @@
             <h3>Nueva Sesión</h3>
             <label>Fecha</label><input type="date" id="newHFecha">
             <label>Tema</label><input type="text" id="newHTitulo">
-            <button class="btn-main" onclick="saveHorario()">Guardar</button>
+            <button class="btn-main" onclick="saveHorario()">Guardar Sesión</button>
         </div>
     </div>
 
@@ -195,35 +199,45 @@
         document.getElementById('fecha-header').innerText = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
         
         let filtroActual = "", alumnoActualId = null, vistaAnterior = 'inicio';
-        const KEY_AL = 'cate_alumnos_v1', KEY_HO = 'cate_horario_v1', KEY_CO = 'cate_conceptos_v1';
+        const KEY_AL = 'cate_v3_alumnos', KEY_HO = 'cate_v3_horario', KEY_CO = 'cate_v3_conceptos';
 
         let alumnos = JSON.parse(localStorage.getItem(KEY_AL)) || [];
         let horario = JSON.parse(localStorage.getItem(KEY_HO)) || [];
-        let conceptos = JSON.parse(localStorage.getItem(KEY_CO)) || [{nombre:"Cuota", precio:"15"}];
+        let conceptos = JSON.parse(localStorage.getItem(KEY_CO)) || [{nombre:"Matrícula", precio:"15"}];
 
         function renderApp() {
             localStorage.setItem(KEY_AL, JSON.stringify(alumnos));
             localStorage.setItem(KEY_HO, JSON.stringify(horario));
             localStorage.setItem(KEY_CO, JSON.stringify(conceptos));
 
-            // Home Asistencia
-            const listAsis = document.getElementById('lista-asistencia');
-            listAsis.innerHTML = alumnos.filter(a => a.nombre.toLowerCase().includes(filtroActual.toLowerCase())).map(a => {
+            // Asistencia
+            document.getElementById('lista-asistencia').innerHTML = alumnos.filter(a => a.nombre.toLowerCase().includes(filtroActual.toLowerCase())).map(a => {
                 const tieneFalta = a.faltas?.some(f => f.fecha === HOY_ISO), tieneAsis = a.asistencias?.includes(HOY_ISO);
                 return `<div class="card item-row"><div style="flex:1" onclick="verFicha(${a.id})"><h4>${a.nombre}</h4></div><div style="display:flex; gap:8px"><button class="status-btn btn-presente ${tieneAsis?'active':''}" onclick="marcarAsistencia(${a.id})">SÍ</button><button class="status-btn btn-ausente ${tieneFalta?'active':''}" onclick="abrirModalFalta(${a.id})">NO</button></div></div>`;
             }).join('');
 
             // Lista Alumnos
-            document.getElementById('lista-fichas').innerHTML = alumnos.map(a => `<div class="card item-row" onclick="verFicha(${a.id})"><div><h4>${a.nombre}</h4></div><span>✏️</span></div>`).join('');
-
-            // Pagos
-            document.getElementById('lista-pagos').innerHTML = alumnos.map(a => {
-                let pgs = conceptos.map(c => `<div class="pago-pill ${(a.pagos && a.pagos[c.nombre])?'active':''}" onclick="togglePago(${a.id}, '${c.nombre}')">${c.nombre}<br>${c.precio}€</div>`).join('');
-                return `<div class="card"><h4>${a.nombre}</h4><div style="margin-top:10px">${pgs}</div></div>`;
+            document.getElementById('lista-fichas').innerHTML = alumnos.map(a => {
+                const deudas = conceptos.filter(c => !a.pagos?.[c.nombre]);
+                return `<div class="card item-row" onclick="verFicha(${a.id})"><div><h4>${a.nombre}</h4><p style="font-size:0.8rem; color:grey">${a.tutor || 'Sin datos'}</p>${deudas.length > 0 ? `<span class="badge-pend">Debe: ${deudas.length} concepto/s</span>` : ''}</div><span>✏️</span></div>`;
             }).join('');
 
             // Horario
-            document.getElementById('lista-horario').innerHTML = horario.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)).map(h => `<div class="card item-row"><div><strong>${h.fecha}</strong><br>${h.titulo}</div><button onclick="deleteEvent(${h.id})" style="border:none; background:none; color:red">✕</button></div>`).join('');
+            document.getElementById('lista-horario').innerHTML = horario.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)).map(h => `<div class="card item-row"><div><strong>${new Date(h.fecha).toLocaleDateString()}</strong><br>${h.titulo}</div><button onclick="deleteEvent(${h.id})" style="border:none; background:none; color:red">✕</button></div>`).join('');
+
+            // Pagos
+            document.getElementById('lista-pagos').innerHTML = alumnos.map(a => {
+                let pgs = conceptos.map(c => `<div class="pago-pill ${(a.pagos && a.pagos[c.nombre])?'active':''}" onclick="togglePago(${a.id}, '${c.nombre}')">${c.nombre}</div>`).join('');
+                return `<div class="card"><h4>${a.nombre}</h4><div style="margin-top:10px">${pgs}</div></div>`;
+            }).join('');
+
+            // Conceptos en Ajustes
+            document.getElementById('lista-conceptos-ajustes').innerHTML = conceptos.map((c, index) => `
+                <div class="card item-row" style="padding:10px 20px; margin-bottom:10px">
+                    <span>${c.nombre} (${c.precio}€)</span>
+                    <button onclick="deleteConcepto(${index})" style="color:red; border:none; background:none; font-weight:bold">Borrar</button>
+                </div>
+            `).join('');
 
             document.getElementById('count-alumnos').innerText = alumnos.length;
             document.getElementById('count-faltas').innerText = alumnos.filter(a => a.faltas?.some(f => f.fecha === HOY_ISO)).length;
@@ -235,11 +249,25 @@
             if(el) el.classList.add('active');
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            
-            // Gestionar botones flotantes
             document.getElementById('fab-alumno').style.display = (id === 'alumnos') ? 'flex' : 'none';
             document.getElementById('fab-evento').style.display = (id === 'calendario') ? 'flex' : 'none';
             document.getElementById('btnBack').style.display = (['ficha-detalle', 'nuevo-alumno', 'nuevo-horario'].includes(id)) ? 'block' : 'none';
+        }
+
+        function addConcepto() {
+            let n = prompt("Nombre del concepto (ej: Excursión):");
+            let p = prompt("Precio (€):");
+            if(n && p) {
+                conceptos.push({nombre: n, precio: p});
+                renderApp();
+            }
+        }
+
+        function deleteConcepto(index) {
+            if(confirm("¿Seguro que quieres borrar este concepto?")) {
+                conceptos.splice(index, 1);
+                renderApp();
+            }
         }
 
         function verFicha(id) {
@@ -247,19 +275,24 @@
             document.getElementById('f-nombre').value = a.nombre;
             document.getElementById('f-tutor').value = a.tutor || ""; 
             document.getElementById('f-tel').value = a.tel || "";
+            document.getElementById('f-parentesco').value = a.parentesco || "Padre";
+            document.getElementById('f-tutor2').value = a.tutor2 || ""; 
+            document.getElementById('f-tel2').value = a.tel2 || "";
+            document.getElementById('f-parentesco2').value = a.parentesco2 || "";
             document.getElementById('f-notas').value = a.notas || "";
-            document.getElementById('f-wa').onclick = () => window.open(`https://wa.me/${a.tel}`);
-            document.getElementById('f-call').onclick = () => window.open(`tel:${a.tel}`);
-            
-            const desglose = document.getElementById('f-desglose-pagos');
-            desglose.innerHTML = conceptos.map(c => {
-                const pagado = a.pagos && a.pagos[c.nombre];
-                return `<div style="display:flex; justify-content:space-between; padding:12px; border-radius:15px; margin-bottom:8px; background:${pagado ? '#dcfce7' : '#fee2e2'}; border:1px solid ${pagado ? '#10b981' : '#ef4444'}"><span>${c.nombre}</span><strong>${pagado?'PAGADO':'PENDIENTE'}</strong></div>`;
-            }).join('');
+            document.getElementById('f-wa').onclick = () => { let t = a.tel || a.tel2; window.open(`https://wa.me/${t}`); };
+            document.getElementById('f-call').onclick = () => { let t = a.tel || a.tel2; window.open(`tel:${t}`); };
             changeTab(null, 'ficha-detalle');
         }
 
-        function prepararNuevoAlumno() { changeTab(null, 'nuevo-alumno'); }
+        function updateAlumno() { 
+            const a = alumnos.find(x => x.id === alumnoActualId); 
+            a.nombre = document.getElementById('f-nombre').value; a.tutor = document.getElementById('f-tutor').value; a.tel = document.getElementById('f-tel').value; 
+            a.parentesco = document.getElementById('f-parentesco').value; a.tutor2 = document.getElementById('f-tutor2').value; a.tel2 = document.getElementById('f-tel2').value;
+            a.parentesco2 = document.getElementById('f-parentesco2').value; a.notas = document.getElementById('f-notas').value; 
+            renderApp(); 
+        }
+
         function saveAlumno() { 
             const n = document.getElementById('newN').value;
             if(n) { 
@@ -268,7 +301,6 @@
             } 
         }
 
-        function prepararNuevaClase() { changeTab(null, 'nuevo-horario'); }
         function saveHorario() { 
             const f = document.getElementById('newHFecha').value, t = document.getElementById('newHTitulo').value;
             if(f && t) { horario.push({id:Date.now(), fecha:f, titulo:t}); renderApp(); goBack(); }
@@ -281,12 +313,14 @@
             a.faltas = a.faltas?.filter(f => f.fecha !== HOY_ISO) || []; 
             renderApp(); 
         }
+
         function abrirModalFalta(id) { 
             alumnoActualId = id; 
             const m = ['Enfermedad', 'Médico', 'Viaje', 'Otros']; 
             document.getElementById('botones-motivo').innerHTML = m.map(x => `<button class="btn-main" onclick="confirmarFalta('${x}')">${x}</button>`).join(''); 
             document.getElementById('modalFalta').style.display = 'flex'; 
         }
+
         function confirmarFalta(motivo) { 
             const a = alumnos.find(x => x.id === alumnoActualId); 
             if(!a.faltas) a.faltas = [];
@@ -295,44 +329,26 @@
             a.asistencias = a.asistencias?.filter(f => f !== HOY_ISO) || []; 
             cerrarModal(); renderApp(); 
         }
-        function cerrarModal() { document.getElementById('modalFalta').style.display = 'none'; }
-        function goBack() { changeTab(null, vistaAnterior); }
+
         function togglePago(id, conc) { 
             const a = alumnos.find(x => x.id === id); 
             if(!a.pagos) a.pagos = {};
             a.pagos[conc] = !a.pagos[conc]; 
             renderApp(); 
         }
-        function updateAlumno() { 
-            const a = alumnos.find(x => x.id === alumnoActualId); 
-            a.nombre = document.getElementById('f-nombre').value; 
-            a.tutor = document.getElementById('f-tutor').value; 
-            a.tel = document.getElementById('f-tel').value; 
-            a.notas = document.getElementById('f-notas').value; 
-            renderApp(); 
-        }
-        function eliminarAlumno() { if(confirm("¿Eliminar?")) { alumnos = alumnos.filter(x => x.id !== alumnoActualId); renderApp(); goBack(); } }
-        function addConcepto() { let n = prompt("Nombre:"), p = prompt("Precio:"); if(n && p) { conceptos.push({nombre:n, precio:p}); renderApp(); } }
-        function deleteEvent(id) { if(confirm("¿Borrar?")) { horario = horario.filter(h => h.id !== id); renderApp(); } }
-        function filtrarAlumnos(v) { filtroActual = v; renderApp(); }
+
         function exportarDatos() { 
             const blob = new Blob([JSON.stringify({alumnos, horario, conceptos})], { type: "application/json" });
-            const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `Catequesis_Backup.json`; a.click();
+            const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `Copia_Catequesis.json`; a.click();
         }
-        function importarDatos(e) {
-            const reader = new FileReader();
-            reader.onload = (ev) => { const d = JSON.parse(ev.target.result); alumnos=d.alumnos; horario=d.horario; conceptos=d.conceptos; renderApp(); };
-            reader.readAsText(e.target.files[0]);
-        }
+
+        function deleteEvent(id) { if(confirm("¿Borrar sesión?")) { horario = horario.filter(h => h.id !== id); renderApp(); } }
+        function eliminarAlumno() { if(confirm("¿Eliminar alumno?")) { alumnos = alumnos.filter(x => x.id !== alumnoActualId); renderApp(); goBack(); } }
+        function filtrarAlumnos(v) { filtroActual = v; renderApp(); }
+        function cerrarModal() { document.getElementById('modalFalta').style.display = 'none'; }
+        function goBack() { changeTab(null, vistaAnterior); }
 
         renderApp();
-
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
-            });
-        }
     </script>
 </body>
 </html>
