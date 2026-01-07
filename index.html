@@ -49,8 +49,7 @@
 
         .item-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         
-        .search-container { padding: 0 16px 15px; }
-        .search-input { width: 100%; padding: 14px 20px; border-radius: 15px; border: 1px solid #e2e8f0; background: var(--bg-card); color: var(--gris-texto); font-size: 0.95rem; outline: none; }
+        .search-input { width: calc(100% - 32px); margin: 0 16px 15px; padding: 14px 20px; border-radius: 15px; border: 1px solid #e2e8f0; background: var(--bg-card); color: var(--gris-texto); outline: none; }
 
         .status-btn { padding: 12px 18px; border-radius: 14px; border: none; font-weight: 600; cursor: pointer; }
         .btn-presente { background: #dcfce7; color: #166534; }
@@ -67,16 +66,17 @@
 
         label { display: block; margin-top: 12px; font-weight: 600; font-size: 0.85rem; color: var(--gris-suave); }
         input, textarea, select { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 15px; margin-top: 5px; font-size: 1rem; background: var(--bg-body); color: var(--gris-texto); font-family: inherit; }
-        .btn-main { background: var(--azul-primario); color: white; border: none; padding: 18px; width: 100%; border-radius: 18px; font-weight: 600; font-size: 1.1rem; margin-top: 15px; cursor: pointer; }
         
-        .comm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .btn-comm { border: none; padding: 15px; border-radius: 15px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-main { background: var(--azul-primario); color: white; border: none; padding: 18px; width: 100%; border-radius: 18px; font-weight: 600; font-size: 1rem; margin-top: 10px; cursor: pointer; }
+        .btn-small { padding: 8px 15px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; background: var(--azul-claro); color: var(--azul-primario); }
 
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background: var(--bg-card); width: 100%; max-width: 400px; border-radius: 25px; padding: 30px; text-align: center; }
-        
         .pago-pill { display: inline-flex; flex-direction: column; align-items: center; padding: 10px; border-radius: 14px; font-size: 0.8rem; font-weight: 600; margin: 4px; cursor: pointer; background: var(--azul-claro); color: var(--azul-primario); min-width: 85px; }
         .pago-pill.active { background: var(--verde-exito); color: white; }
+
+        .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .report-box { background: var(--azul-claro); padding: 15px; border-radius: 15px; text-align: center; }
+        .report-box h4 { font-size: 1.2rem; color: var(--azul-oscuro); }
+        .report-box p { font-size: 0.7rem; color: var(--gris-suave); }
     </style>
 </head>
 <body>
@@ -96,9 +96,7 @@
             <div class="card" style="margin:0; text-align:center"><h3 id="count-faltas" style="color:var(--rojo-alerta)">0</h3><p style="font-size:0.7rem">FALTAS HOY</p></div>
         </div>
         <div class="section-label">Asistencia de Hoy</div>
-        <div class="search-container">
-            <input type="text" class="search-input" placeholder="🔍 Buscar alumno..." onkeyup="filtrarAlumnos(this.value)">
-        </div>
+        <input type="text" class="search-input" placeholder="🔍 Buscar alumno..." onkeyup="filtrarAlumnos(this.value)">
         <div id="lista-asistencia"></div>
     </div>
 
@@ -118,19 +116,31 @@
     </div>
 
     <div id="ajustes" class="view">
-        <div class="section-label">Preferencias</div>
+        <div class="section-label">Preferencias Visuales</div>
         <div class="card item-row">
             <span>Modo Oscuro</span>
-            <button onclick="document.body.classList.toggle('dark-mode')" style="padding:5px 15px; border-radius:10px; border:1px solid #ddd">Cambiar</button>
+            <button class="btn-small" onclick="document.body.classList.toggle('dark-mode')">Cambiar Tema</button>
         </div>
-        
-        <div class="section-label">Conceptos de Pago <button onclick="addConcepto()" style="float:right; background:var(--azul-primario); color:white; border:none; width:25px; height:25px; border-radius:50%; font-weight:bold">+</button></div>
+
+        <div class="section-label">Informes Generales</div>
+        <div class="card">
+            <div class="report-grid">
+                <div class="report-box"><h4 id="inf-total-al">0</h4><p>ALUMNOS</p></div>
+                <div class="report-box"><h4 id="inf-total-cl">0</h4><p>CLASES</p></div>
+                <div class="report-box"><h4 id="inf-total-as">0</h4><p>ASISTENCIAS</p></div>
+                <div class="report-box"><h4 id="inf-total-fa" style="color:var(--rojo-alerta)">0</h4><p>FALTAS TOTALES</p></div>
+            </div>
+            <div id="lista-detalles-informe" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; border-top: 1px solid #eee; padding-top: 10px;">
+                </div>
+        </div>
+
+        <div class="section-label">Gestión de Pagos <button onclick="addConcepto()" style="float:right; background:var(--azul-primario); color:white; border:none; width:25px; height:25px; border-radius:50%; font-weight:bold">+</button></div>
         <div id="lista-conceptos-ajustes"></div>
 
-        <div class="section-label">Seguridad</div>
+        <div class="section-label">Seguridad de Datos</div>
         <div class="card">
-            <button class="btn-main" onclick="exportarDatos()" style="background: var(--verde-exito);">💾 Guardar Copia Seguridad</button>
-            <button class="btn-main" onclick="document.getElementById('importInput').click()" style="background: var(--azul-oscuro); margin-top:10px;">📥 Restaurar Copia</button>
+            <button class="btn-main" onclick="exportarDatos()" style="background: var(--verde-exito);">💾 Exportar Copia de Seguridad</button>
+            <button class="btn-main" onclick="document.getElementById('importInput').click()" style="background: var(--azul-oscuro);">📥 Restaurar Copia</button>
             <input type="file" id="importInput" style="display:none" accept=".json" onchange="importarDatos(event)">
         </div>
     </div>
@@ -138,23 +148,21 @@
     <div id="ficha-detalle" class="view">
         <div class="card">
             <label>Nombre Alumno</label><input type="text" id="f-nombre" onchange="updateAlumno()">
-            
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <div><label>Parentesco 1</label><select id="f-parentesco" onchange="updateAlumno()"><option value="Padre">Padre</option><option value="Madre">Madre</option><option value="Tutor">Tutor</option></select></div>
                 <div><label>Nombre Resp. 1</label><input type="text" id="f-tutor" onchange="updateAlumno()"></div>
             </div>
             <label>Teléfono 1</label><input type="tel" id="f-tel" onchange="updateAlumno()">
-
             <div style="margin:20px 0; border-top:1px dashed #ddd"></div>
-
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <div><label>Parentesco 2</label><select id="f-parentesco2" onchange="updateAlumno()"><option value="">Ninguno</option><option value="Padre">Padre</option><option value="Madre">Madre</option><option value="Tutor">Tutor</option></select></div>
                 <div><label>Nombre Resp. 2</label><input type="text" id="f-tutor2" onchange="updateAlumno()"></div>
             </div>
             <label>Teléfono 2</label><input type="tel" id="f-tel2" onchange="updateAlumno()">
-
-            <div class="comm-grid"><button id="f-wa" class="btn-comm" style="background:#25d366">📱 WhatsApp</button><button id="f-call" class="btn-comm" style="background:var(--azul-primario)">📞 Llamar</button></div>
-            
+            <div class="comm-grid">
+                <button id="f-wa" class="btn-main" style="background:#25d366; margin-top:15px">WhatsApp</button>
+                <button id="f-call" class="btn-main" style="background:var(--azul-primario); margin-top:15px">Llamar</button>
+            </div>
             <label>Notas</label><textarea id="f-notas" onchange="updateAlumno()"></textarea>
             <button class="btn-main" style="background:none; color:var(--rojo-alerta); border:1px solid var(--rojo-alerta)" onclick="eliminarAlumno()">Eliminar Alumno</button>
         </div>
@@ -178,7 +186,7 @@
         document.getElementById('fecha-header').innerText = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
         
         let filtroActual = "", alumnoActualId = null, vistaAnterior = 'inicio';
-        const KEY_AL = 'cate_v5_alumnos', KEY_HO = 'cate_v5_horario', KEY_CO = 'cate_v5_conceptos';
+        const KEY_AL = 'cate_v6_alumnos', KEY_HO = 'cate_v6_horario', KEY_CO = 'cate_v6_conceptos';
 
         let alumnos = JSON.parse(localStorage.getItem(KEY_AL)) || [];
         let horario = JSON.parse(localStorage.getItem(KEY_HO)) || [];
@@ -189,27 +197,35 @@
             localStorage.setItem(KEY_HO, JSON.stringify(horario));
             localStorage.setItem(KEY_CO, JSON.stringify(conceptos));
 
-            // Asistencia
+            // Listas básicas
             document.getElementById('lista-asistencia').innerHTML = alumnos.filter(a => a.nombre.toLowerCase().includes(filtroActual.toLowerCase())).map(a => {
                 const tieneFalta = a.faltas?.some(f => f.fecha === HOY_ISO), tieneAsis = a.asistencias?.includes(HOY_ISO);
                 return `<div class="card item-row"><div style="flex:1" onclick="verFicha(${a.id})"><h4>${a.nombre}</h4></div><div style="display:flex; gap:8px"><button class="status-btn btn-presente ${tieneAsis?'active':''}" onclick="marcarAsistencia(${a.id})">SÍ</button><button class="status-btn btn-ausente ${tieneFalta?'active':''}" onclick="abrirModalFalta(${a.id})">NO</button></div></div>`;
             }).join('');
 
-            // Lista Alumnos
             document.getElementById('lista-fichas').innerHTML = alumnos.map(a => `<div class="card item-row" onclick="verFicha(${a.id})"><div><h4>${a.nombre}</h4><p style="font-size:0.8rem; color:grey">${a.tutor || ''}</p></div><span>✏️</span></div>`).join('');
-
-            // Horario
             document.getElementById('lista-horario').innerHTML = horario.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)).map(h => `<div class="card item-row"><div><strong>${new Date(h.fecha).toLocaleDateString()}</strong><br>${h.titulo}</div><button onclick="deleteEvent(${h.id})" style="border:none; background:none; color:red">✕</button></div>`).join('');
-
-            // Pagos
             document.getElementById('lista-pagos').innerHTML = alumnos.map(a => {
                 let pgs = conceptos.map(c => `<div class="pago-pill ${(a.pagos && a.pagos[c.nombre])?'active':''}" onclick="togglePago(${a.id}, '${c.nombre}')">${c.nombre}</div>`).join('');
                 return `<div class="card"><h4>${a.nombre}</h4><div style="margin-top:10px">${pgs}</div></div>`;
             }).join('');
 
-            // Conceptos en Ajustes
-            document.getElementById('lista-conceptos-ajustes').innerHTML = conceptos.map((c, i) => `<div class="card item-row" style="padding:10px 20px; margin-bottom:10px"><span>${c.nombre} (${c.precio}€)</span><button onclick="deleteConcepto(${i})" style="color:red; border:none; background:none">Borrar</button></div>`).join('');
+            // AJUSTES: Informes
+            let totalAsis = 0, totalFaltas = 0;
+            let htmlDetalle = alumnos.map(a => {
+                let as = a.asistencias?.length || 0;
+                let fa = a.faltas?.length || 0;
+                totalAsis += as; totalFaltas += fa;
+                return `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f8f8f8"><span>${a.nombre}</span><span><b>${as}</b> Asis / <b>${fa}</b> Faltas</span></div>`;
+            }).join('');
+            
+            document.getElementById('inf-total-al').innerText = alumnos.length;
+            document.getElementById('inf-total-cl').innerText = horario.length;
+            document.getElementById('inf-total-as').innerText = totalAsis;
+            document.getElementById('inf-total-fa').innerText = totalFaltas;
+            document.getElementById('lista-detalles-informe').innerHTML = htmlDetalle || "No hay datos";
 
+            document.getElementById('lista-conceptos-ajustes').innerHTML = conceptos.map((c, i) => `<div class="card item-row" style="padding:10px 20px; margin-bottom:10px"><span>${c.nombre} (${c.precio}€)</span><button onclick="deleteConcepto(${i})" style="color:red; border:none; background:none">Borrar</button></div>`).join('');
             document.getElementById('count-alumnos').innerText = alumnos.length;
             document.getElementById('count-faltas').innerText = alumnos.filter(a => a.faltas?.some(f => f.fecha === HOY_ISO)).length;
         }
@@ -223,6 +239,7 @@
             document.getElementById('fab-alumno').style.display = (id === 'alumnos') ? 'flex' : 'none';
             document.getElementById('fab-evento').style.display = (id === 'calendario') ? 'flex' : 'none';
             document.getElementById('btnBack').style.display = (['ficha-detalle', 'nuevo-alumno', 'nuevo-horario'].includes(id)) ? 'block' : 'none';
+            renderApp();
         }
 
         function verFicha(id) {
@@ -245,10 +262,10 @@
             a.parentesco2 = document.getElementById('f-parentesco2').value; a.notas = document.getElementById('f-notas').value; renderApp(); 
         }
 
-        function addConcepto() { let n = prompt("Concepto:"); let p = prompt("Precio:"); if(n && p){ conceptos.push({nombre:n, precio:p}); renderApp(); } }
+        function addConcepto() { let n = prompt("Nombre:"); let p = prompt("Precio:"); if(n && p){ conceptos.push({nombre:n, precio:p}); renderApp(); } }
         function deleteConcepto(i) { if(confirm("¿Borrar?")){ conceptos.splice(i, 1); renderApp(); } }
         function marcarAsistencia(id) { const a = alumnos.find(x => x.id === id); if(!a.asistencias) a.asistencias = []; if(!a.asistencias.includes(HOY_ISO)) a.asistencias.push(HOY_ISO); a.faltas = a.faltas?.filter(f => f.fecha !== HOY_ISO); renderApp(); }
-        function abrirModalFalta(id) { alumnoActualId = id; const m = ['Enfermedad', 'Médico', 'Viaje', 'Otros']; document.getElementById('botones-motivo').innerHTML = m.map(x => `<button class="btn-main" onclick="confirmarFalta('${x}')">${x}</button>`).join(''); document.getElementById('modalFalta').style.display = 'flex'; }
+        function abrirModalFalta(id) { alumnoActualId = id; const m = ['Enfermedad', 'Médico', 'Viaje', 'Otros']; document.getElementById('botones-motivo').innerHTML = m.map(x => `<button class="btn-main" style="padding:10px" onclick="confirmarFalta('${x}')">${x}</button>`).join(''); document.getElementById('modalFalta').style.display = 'flex'; }
         function confirmarFalta(motivo) { const a = alumnos.find(x => x.id === alumnoActualId); if(!a.faltas) a.faltas = []; a.faltas.push({fecha:HOY_ISO, motivo:motivo}); a.asistencias = a.asistencias?.filter(f => f !== HOY_ISO); cerrarModal(); renderApp(); }
         function togglePago(id, c) { const a = alumnos.find(x => x.id === id); if(!a.pagos) a.pagos = {}; a.pagos[c] = !a.pagos[c]; renderApp(); }
         function exportarDatos() { const blob = new Blob([JSON.stringify({alumnos, horario, conceptos})], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `Copia_Catequesis.json`; a.click(); }
